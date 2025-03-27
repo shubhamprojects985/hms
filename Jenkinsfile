@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 // Git repo se code fetch karenge
-                git branch: 'main', url: 'https://github.com/rickxy/Hospital-Management-System.git'
+                git branch: 'main', url: 'https://github.com/shubhamprojects985/hms.git'
             }
         }
 
@@ -38,9 +38,9 @@ pipeline {
                         def configTemplate = '''
                             <?php
                             define('DB_HOST', 'localhost');
-                            define('DB_USER', '__DB_USER__');
-                            define('DB_PASS', '__DB_PASS__');
-                            define('DB_NAME', 'hospital_db');
+                            define('DB_USER', 'root');
+                            define('DB_PASS', '');
+                            define('DB_NAME', 'hmisphp');
                             ?>
                         '''
                         def finalConfig = configTemplate.replace('__DB_USER__', DB_USER).replace('__DB_PASS__', DB_PASS)
