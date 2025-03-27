@@ -9,11 +9,12 @@ pipeline {
         SQL_FILE = 'hmisphp.sql'         // Apne SQL script ka naam daal dena
     }
 
-    stages {
+   stages {
         stage('Checkout') {
             steps {
-                // Git repo se code fetch karenge
-                git branch: 'main', url: 'https://github.com/shubhamprojects985/hms.git'
+                git branch: 'main', 
+                    url: 'https://github.com/rickxy/Hospital-Management-System.git',
+                    credentialsId: 'github-credentials' // Git credentials yahan add kiye
             }
         }
 
