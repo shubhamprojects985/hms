@@ -13,7 +13,7 @@ pipeline {
         stage('Checkout') {
             steps {
                 git branch: 'main', 
-                    url: 'https://github.com/rickxy/Hospital-Management-System.git',
+                    url: 'https://github.com/shubhamprojects985/hms.git',
                     credentialsId: 'github-credentials' // Git credentials yahan add kiye
             }
         }
