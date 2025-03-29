@@ -4,7 +4,7 @@ pipeline {
     environment {
         // Paths ko flexible banaya, apne setup ke hisaab se change kar lena
         DEPLOY_PATH = "${isUnix() ? '/opt/lampp/htdocs' : 'C:\\\\xampp\\\\htdocs'}" // Default paths, change kar sakta hai
-        COMPOSER_CMD = 'C:\xampp\php\php.exe C:\\ProgramData\\ComposerSetup\\bin\\composer'         // Composer command, agar alag hai to yahan set kar
+        COMPOSER_CMD = 'C:\\xampp\\php\\php.exe C:\\ProgramData\\ComposerSetup\\bin\\composer'         // Composer command, agar alag hai to yahan set kar
         MYSQL_CMD = 'mysql'               // MySQL command, agar alag hai to yahan set kar
         SQL_FILE = 'hmisphp.sql'         // Apne SQL script ka naam daal dena
     }
