@@ -6,6 +6,7 @@ pipeline {
         DEPLOY_PATH = "${env.DEPLOY_PATH ?: 'C:\\xampp\\htdocs\\hms'}" // Default for Windows, override via Jenkins
         SQL_FILE = 'hmisphp.sql'
         DB_NAME = 'hmisphp'
+        MYSQL_PATH = 'C:\\xampp\\mysql\\bin' // Adjust if MySQL is installed elsewhere
     }
 
     stages {
@@ -86,14 +87,32 @@ pipeline {
                     usernameVariable: 'DB_USER',
                     passwordVariable: 'DB_PASS'
                 )]) {
+                    // script {
+                    //     // Create database and import SQL file based on OS
+                    //     if (isUnix()) {
+                    //         sh "echo 'CREATE DATABASE IF NOT EXISTS ${DB_NAME};' | mysql -u ${DB_USER} -p${DB_PASS}"
+                    //         sh "mysql -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                    //     } else {
+                    //         bat "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | mysql -u ${DB_USER} -p${DB_PASS}"
+                    //         bat "mysql -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                    //     }
+                    // }
                     script {
-                        // Create database and import SQL file based on OS
+                        // Ensure MySQL path is available in Windows
+                        if (!isUnix()) {
+                            bat "set PATH=%PATH%;${MYSQL_PATH}"
+                        }
+
+                        // Create database and import SQL file
+                        def createDbCommand = "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | mysql -u${DB_USER} -p${DB_PASS}"
+                        def importDbCommand = "mysql -u${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+
                         if (isUnix()) {
-                            sh "echo 'CREATE DATABASE IF NOT EXISTS ${DB_NAME};' | mysql -u ${DB_USER} -p${DB_PASS}"
-                            sh "mysql -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                            sh createDbCommand
+                            sh importDbCommand
                         } else {
-                            bat "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | mysql -u ${DB_USER} -p${DB_PASS}"
-                            bat "mysql -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                            bat createDbCommand
+                            bat importDbCommand
                         }
                     }
                 }
