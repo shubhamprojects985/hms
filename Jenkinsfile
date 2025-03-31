@@ -98,9 +98,16 @@ pipeline {
                     //     }
                     // }
                     script {
-                        // Create database and import SQL file
-                        def createDbCommand = "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | \"${MYSQL_PATH}\\mysql\" -u${DB_USER} -p${DB_PASS}"
-                        def importDbCommand = "\"${MYSQL_PATH}\\mysql\" -u${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                        // Ensure MySQL service is running before executing commands
+                        if (!isUnix()) {
+                            bat 'net start mysql || echo MySQL service already running'
+                        } else {
+                            sh 'service mysql start || echo MySQL service already running'
+                        }
+
+                        // Create database and import SQL file securely
+                        def createDbCommand = "\"${MYSQL_PATH}\\mysql\" -u${DB_USER} --password=${DB_PASS} -e \"CREATE DATABASE IF NOT EXISTS ${DB_NAME};\""
+                        def importDbCommand = "\"${MYSQL_PATH}\\mysql\" -u${DB_USER} --password=${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
 
                         if (isUnix()) {
                             sh createDbCommand
