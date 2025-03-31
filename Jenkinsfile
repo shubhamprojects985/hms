@@ -1,32 +1,27 @@
 pipeline {
-    agent any
+    agent {
+        label 'windows'
+    }
 
     environment {
-        DEPLOY_PATH = "${isUnix() ? '/opt/lampp/htdocs/hms' : 'C:\\\\xampp\\\\htdocs\\\\hms'}" // Dedicated folder for HMS
-        COMPOSER_CMD = "${isUnix() ? 'composer' : 'C:\\\\xampp\\\\php\\\\php.exe C:\\\\ProgramData\\\\ComposerSetup\\\\bin\\\\composer'}" // Flexible Composer path
-        MYSQL_CMD = "${isUnix() ? 'mysql' : 'C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe'}" // Flexible MySQL path
-        SQL_FILE = 'hmisphp.sql' // Your SQL file
-        DB_NAME = 'hmisphp' // Consistent database name
+        DEPLOY_PATH = 'C:\\xampp\\htdocs\\hms'
+        COMPOSER_CMD = 'C:\\ProgramData\\ComposerSetup\\bin\\composer.bat'
+        MYSQL_CMD = 'C:\\xampp\\mysql\\bin\\mysql.exe'
+        SQL_FILE = 'hmisphp.sql'
+        DB_NAME = 'hmisphp'
     }
 
     stages {
         stage('Checkout') {
             steps {
-                git branch: 'main', 
-                    url: 'https://github.com/shubhamprojects985/hms.git',
-                    credentialsId: 'github-credentials' // GitHub credentials
+                git branch: 'main', url: 'https://github.com/shubhamprojects985/hms.git', credentialsId: 'github-credentials'
             }
         }
 
         stage('Install Dependencies') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh "${COMPOSER_CMD} install --no-dev --optimize-autoloader"
-                    } else {
-                        bat "${COMPOSER_CMD} install --no-dev --optimize-autoloader"
-                    }
-                }
+                bat "C:\\ProgramData\\ComposerSetup\\bin\\composer.bat install --no-dev --optimize-autoloader"
+                // Or use: bat "${COMPOSER_CMD} install --no-dev --optimize-autoloader" if using the env variable
             }
         }
 
@@ -51,44 +46,12 @@ pipeline {
             }
         }
 
-        // stage('Run Tests') {
-        //     steps {
-        //         script {
-        //             if (fileExists('vendor/bin/phpunit') || fileExists('vendor\\bin\\phpunit')) {
-        //                 if (isUnix()) {
-        //                     sh 'vendor/bin/phpunit --log-junit test-results.xml || true'
-        //                 } else {
-        //                     bat 'vendor\\bin\\phpunit --log-junit test-results.xml || exit 0'
-        //                 }
-        //             } else {
-        //                 echo 'PHPUnit not found, skipping tests. Add tests to your project for better quality!'
-        //             }
-        //         }
-        //     }
-        // }
-
         stage('Deploy') {
             steps {
-                script {
-                    if (isUnix()) {
-                        sh "mkdir -p ${DEPLOY_PATH} && rsync -av --exclude='.git' ./ ${DEPLOY_PATH}/"
-                    } else {
-                        bat "if not exist ${DEPLOY_PATH} mkdir ${DEPLOY_PATH} && robocopy . ${DEPLOY_PATH} /E /XD .git /MT"
-                    }
-                }
-            }
-        }
-
-        stage('Setup Database') {
-            steps {
+                bat "if not exist ${DEPLOY_PATH} mkdir ${DEPLOY_PATH} && xcopy . ${DEPLOY_PATH} /E /I /Y"
                 withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
-                    script {
-                        if (isUnix()) {
-                            sh "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE} || echo 'DB setup might have issues, check logs!'"
-                        } else {
-                            bat "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE} || echo 'DB setup might have issues, check logs!'"
-                        }
-                    }
+                    bat "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | ${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS}"
+                    bat "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
                 }
             }
         }
@@ -96,10 +59,10 @@ pipeline {
 
     post {
         always {
-            echo 'Pipeline complete ho gaya bhai!'
+            echo 'Pipeline complete!'
         }
         failure {
-            echo 'Kuch gadbad ho gaya, logs check kar le!'
+            echo 'Something went wrong, check the logs!'
         }
     }
 }
