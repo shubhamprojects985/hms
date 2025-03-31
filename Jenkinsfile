@@ -98,14 +98,9 @@ pipeline {
                     //     }
                     // }
                     script {
-                        // Ensure MySQL path is available in Windows
-                        if (!isUnix()) {
-                            bat "set PATH=%PATH%;${MYSQL_PATH}"
-                        }
-
                         // Create database and import SQL file
-                        def createDbCommand = "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | mysql -u${DB_USER} -p${DB_PASS}"
-                        def importDbCommand = "mysql -u${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                        def createDbCommand = "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | \"${MYSQL_PATH}\\mysql\" -u${DB_USER} -p${DB_PASS}"
+                        def importDbCommand = "\"${MYSQL_PATH}\\mysql\" -u${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
 
                         if (isUnix()) {
                             sh createDbCommand
