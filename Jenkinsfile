@@ -1,7 +1,5 @@
 pipeline {
-    agent {
-        label 'windows'
-    }
+    agent any
 
     environment {
         DEPLOY_PATH = 'C:\\xampp\\htdocs\\hms'
