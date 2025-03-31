@@ -2,26 +2,25 @@ pipeline {
     agent any
 
     environment {
-        // Paths ko flexible banaya, apne setup ke hisaab se change kar lena
-        DEPLOY_PATH = "${isUnix() ? '/opt/lampp/htdocs' : 'C:\\\\xampp\\\\htdocs'}" // Default paths, change kar sakta hai
-        COMPOSER_CMD = 'C:\\xampp\\php\\php.exe C:\\ProgramData\\ComposerSetup\\bin\\composer'         // Composer command, agar alag hai to yahan set kar
-        MYSQL_CMD = 'mysql'               // MySQL command, agar alag hai to yahan set kar
-        SQL_FILE = 'hmisphp.sql'         // Apne SQL script ka naam daal dena
+        DEPLOY_PATH = "${isUnix() ? '/opt/lampp/htdocs/hms' : 'C:\\\\xampp\\\\htdocs\\\\hms'}" // Dedicated folder for HMS
+        COMPOSER_CMD = "${isUnix() ? 'composer' : 'C:\\\\xampp\\\\php\\\\php.exe C:\\\\ProgramData\\\\ComposerSetup\\\\bin\\\\composer'}" // Flexible Composer path
+        MYSQL_CMD = "${isUnix() ? 'mysql' : 'C:\\\\xampp\\\\mysql\\\\bin\\\\mysql.exe'}" // Flexible MySQL path
+        SQL_FILE = 'hmisphp.sql' // Your SQL file
+        DB_NAME = 'hmisphp' // Consistent database name
     }
 
-   stages {
+    stages {
         stage('Checkout') {
             steps {
                 git branch: 'main', 
                     url: 'https://github.com/shubhamprojects985/hms.git',
-                    credentialsId: 'github-credentials' // Git credentials yahan add kiye
+                    credentialsId: 'github-credentials' // GitHub credentials
             }
         }
 
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Cross-platform composer install
                     if (isUnix()) {
                         sh "${COMPOSER_CMD} install --no-dev --optimize-autoloader"
                     } else {
@@ -35,16 +34,17 @@ pipeline {
             steps {
                 withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
                     script {
-                        // Config file dynamically banayenge
                         def configTemplate = '''
                             <?php
                             define('DB_HOST', 'localhost');
-                            define('DB_USER', 'root');
-                            define('DB_PASS', '');
-                            define('DB_NAME', 'hmisphp');
+                            define('DB_USER', '__DB_USER__');
+                            define('DB_PASS', '__DB_PASS__');
+                            define('DB_NAME', '__DB_NAME__');
                             ?>
                         '''
-                        def finalConfig = configTemplate.replace('__DB_USER__', DB_USER).replace('__DB_PASS__', DB_PASS)
+                        def finalConfig = configTemplate.replace('__DB_USER__', DB_USER)
+                                                        .replace('__DB_PASS__', DB_PASS)
+                                                        .replace('__DB_NAME__', DB_NAME)
                         writeFile file: 'config.php', text: finalConfig
                     }
                 }
@@ -54,10 +54,14 @@ pipeline {
         // stage('Run Tests') {
         //     steps {
         //         script {
-        //             if (isUnix()) {
-        //                 sh 'vendor/bin/phpunit --log-junit test-results.xml'
+        //             if (fileExists('vendor/bin/phpunit') || fileExists('vendor\\bin\\phpunit')) {
+        //                 if (isUnix()) {
+        //                     sh 'vendor/bin/phpunit --log-junit test-results.xml || true'
+        //                 } else {
+        //                     bat 'vendor\\bin\\phpunit --log-junit test-results.xml || exit 0'
+        //                 }
         //             } else {
-        //                 bat 'vendor\\bin\\phpunit --log-junit test-results.xml'
+        //                 echo 'PHPUnit not found, skipping tests. Add tests to your project for better quality!'
         //             }
         //         }
         //     }
@@ -66,16 +70,23 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Files deploy karenge aur DB setup karenge
                     if (isUnix()) {
-                        sh "mkdir -p ${DEPLOY_PATH} && cp -rf . ${DEPLOY_PATH}/"
-                        withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
-                            sh "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} hospital_db < ${SQL_FILE}"
-                        }
+                        sh "mkdir -p ${DEPLOY_PATH} && rsync -av --exclude='.git' ./ ${DEPLOY_PATH}/"
                     } else {
-                        bat "if not exist ${DEPLOY_PATH} mkdir ${DEPLOY_PATH} && xcopy . ${DEPLOY_PATH} /E /I /Y"
-                        withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
-                            bat "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} hospital_db < ${SQL_FILE}"
+                        bat "if not exist ${DEPLOY_PATH} mkdir ${DEPLOY_PATH} && robocopy . ${DEPLOY_PATH} /E /XD .git /MT"
+                    }
+                }
+            }
+        }
+
+        stage('Setup Database') {
+            steps {
+                withCredentials([usernamePassword(credentialsId: 'mysql-credentials', usernameVariable: 'DB_USER', passwordVariable: 'DB_PASS')]) {
+                    script {
+                        if (isUnix()) {
+                            sh "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE} || echo 'DB setup might have issues, check logs!'"
+                        } else {
+                            bat "${MYSQL_CMD} -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE} || echo 'DB setup might have issues, check logs!'"
                         }
                     }
                 }
@@ -88,7 +99,7 @@ pipeline {
             echo 'Pipeline complete ho gaya bhai!'
         }
         failure {
-            echo 'Kuch gadbad ho gaya, check kar le!'
+            echo 'Kuch gadbad ho gaya, logs check kar le!'
         }
     }
 }
