@@ -29,11 +29,16 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Check OS and run appropriate command
-                    if (isUnix()) {
-                        sh 'composer install --no-dev --optimize-autoloader'
+                    // Check if composer.json exists before running composer install
+                    if (fileExists('composer.json')) {
+                        // Check OS and run appropriate command
+                        if (isUnix()) {
+                            sh 'composer install --no-dev --optimize-autoloader'
+                        } else {
+                            bat 'composer install --no-dev --optimize-autoloader'
+                        }
                     } else {
-                        bat 'composer install --no-dev --optimize-autoloader'
+                        echo 'No composer.json found, skipping dependency installation.'
                     }
                 }
             }
