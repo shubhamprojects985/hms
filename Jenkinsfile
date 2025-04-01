@@ -3,7 +3,8 @@ pipeline {
 
     // Environment variables for customization
     environment {
-        DEPLOY_PATH = "${env.DEPLOY_PATH ?: (isUnix() ? '/var/www/html/hms' : 'C:\\xampp\\htdocs\\hms')}"
+        DEPLOY_PATH = "${env.DEPLOY_PATH ?: 'C:\\xampp\\htdocs\\hms'}" // Default deployment path for XAMPP on Windows
+        // For Linux, you can set it to '/var/www/html/hms' or any other path as needed
         SQL_FILE = 'hmisphp.sql'
         DB_NAME = 'hmisphp'
         DB_HOST = "${env.DB_HOST ?: 'localhost'}"
@@ -14,16 +15,18 @@ pipeline {
         // Stage 1: Checkout code from GitHub
         stage('Checkout') {
             steps {
-                script {
-                    checkout([
-                        $class: 'GitSCM',
-                        branches: [[name: '*/main']],
-                        userRemoteConfigs: [[
-                            url: 'https://github.com/shubhamprojects985/hms.git',
-                            credentialsId: 'github-credentials'
-                        ]]
-                    ])
-                }
+                // script {
+                //     checkout([
+                //         $class: 'GitSCM',
+                //         branches: [[name: '*/main']],
+                //         userRemoteConfigs: [[
+                //             url: 'https://github.com/shubhamprojects985/hms.git',
+                //             credentialsId: 'github-credentials'
+                //         ]]
+                //     ])
+                // }
+                // No need for explicit checkout here; SCM handles it
+                echo 'Code checked out from SCM'
             }
         }
 
