@@ -7,6 +7,7 @@ pipeline {
         SQL_FILE = 'hmisphp.sql'
         DB_NAME = 'hmisphp'
         DB_HOST = "${env.DB_HOST ?: 'localhost'}"
+        MYSQL_PATH = "${env.MYSQL_PATH ?: 'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin'}" // Default MySQL Workbench path
     }
 
     stages {
@@ -74,7 +75,6 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Copy files to deployment path
                     if (isUnix()) {
                         sh "mkdir -p ${DEPLOY_PATH} && cp -r . ${DEPLOY_PATH}"
                     } else {
@@ -87,25 +87,19 @@ pipeline {
                     passwordVariable: 'DB_PASS'
                 )]) {
                     script {
-                        // Define MySQL command based on OS
-                        def mysqlCmd
-                        if (isUnix()) {
-                            mysqlCmd = 'mysql'
-                        } else {
-                            def defaultMysqlPath = 'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin'
-                            mysqlCmd = "${env.MYSQL_PATH ?: defaultMysqlPath}\\mysql.exe"
-                        }
+                        def mysqlCmd = isUnix() ? 'mysql' : "\"${MYSQL_PATH}\\mysql.exe\"" // Quote the path for Windows
+                        def createDbCommand = "${mysqlCmd} -u${DB_USER} -h${DB_HOST} -e \"CREATE DATABASE IF NOT EXISTS ${DB_NAME};\""
+                        def importDbCommand = "${mysqlCmd} -u${DB_USER} -h${DB_HOST} ${DB_NAME} < ${SQL_FILE}"
 
-                        // Create database and import SQL file
-                        def createDbCommand = "${mysqlCmd} -u${DB_USER} --password=${DB_PASS} -h${DB_HOST} -e \"CREATE DATABASE IF NOT EXISTS ${DB_NAME};\""
-                        def importDbCommand = "${mysqlCmd} -u${DB_USER} --password=${DB_PASS} -h${DB_HOST} ${DB_NAME} < ${SQL_FILE}"
-
-                        if (isUnix()) {
-                            sh createDbCommand
-                            sh importDbCommand
-                        } else {
-                            bat createDbCommand
-                            bat importDbCommand
+                        // Use environment variables to pass password securely
+                        withEnv(["MYSQL_PWD=${DB_PASS}"]) {
+                            if (isUnix()) {
+                                sh createDbCommand
+                                sh importDbCommand
+                            } else {
+                                bat createDbCommand
+                                bat importDbCommand
+                            }
                         }
                     }
                 }
