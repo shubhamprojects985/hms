@@ -25,7 +25,10 @@ SET time_zone = "+00:00";
 --
 -- Table structure for table `his_accounts`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_accounts`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_accounts` (
   `acc_id` int(200) NOT NULL,
   `acc_name` varchar(200) DEFAULT NULL,
@@ -50,7 +53,10 @@ INSERT INTO `his_accounts` (`acc_id`, `acc_name`, `acc_desc`, `acc_type`, `acc_n
 --
 -- Table structure for table `his_admin`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_admin`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_admin` (
   `ad_id` int(20) NOT NULL,
   `ad_fname` varchar(200) DEFAULT NULL,
@@ -72,7 +78,10 @@ INSERT INTO `his_admin` (`ad_id`, `ad_fname`, `ad_lname`, `ad_email`, `ad_pwd`, 
 --
 -- Table structure for table `his_assets`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_assets`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_assets` (
   `asst_id` int(20) NOT NULL,
   `asst_name` varchar(200) DEFAULT NULL,
@@ -87,7 +96,10 @@ CREATE TABLE `his_assets` (
 --
 -- Table structure for table `his_docs`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_docs`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_docs` (
   `doc_id` int(20) NOT NULL,
   `doc_fname` varchar(200) DEFAULT NULL,
@@ -113,7 +125,10 @@ INSERT INTO `his_docs` (`doc_id`, `doc_fname`, `doc_lname`, `doc_email`, `doc_pw
 --
 -- Table structure for table `his_equipments`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_equipments`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_equipments` (
   `eqp_id` int(20) NOT NULL,
   `eqp_code` varchar(200) DEFAULT NULL,
@@ -138,7 +153,10 @@ INSERT INTO `his_equipments` (`eqp_id`, `eqp_code`, `eqp_name`, `eqp_vendor`, `e
 --
 -- Table structure for table `his_laboratory`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_laboratory`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_laboratory` (
   `lab_id` int(20) NOT NULL,
   `lab_pat_name` varchar(200) DEFAULT NULL,
@@ -166,7 +184,10 @@ INSERT INTO `his_laboratory` (`lab_id`, `lab_pat_name`, `lab_pat_ailment`, `lab_
 --
 -- Table structure for table `his_medical_records`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_medical_records`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_medical_records` (
   `mdr_id` int(20) NOT NULL,
   `mdr_number` varchar(200) DEFAULT NULL,
@@ -194,7 +215,10 @@ INSERT INTO `his_medical_records` (`mdr_id`, `mdr_number`, `mdr_pat_name`, `mdr_
 --
 -- Table structure for table `his_patients`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_patients`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_patients` (
   `pat_id` int(20) NOT NULL,
   `pat_fname` varchar(200) DEFAULT NULL,
@@ -226,7 +250,10 @@ INSERT INTO `his_patients` (`pat_id`, `pat_fname`, `pat_lname`, `pat_dob`, `pat_
 --
 -- Table structure for table `his_patient_transfers`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_patient_transfers`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_patient_transfers` (
   `t_id` int(20) NOT NULL,
   `t_hospital` varchar(200) DEFAULT NULL,
@@ -248,7 +275,10 @@ INSERT INTO `his_patient_transfers` (`t_id`, `t_hospital`, `t_date`, `t_pat_name
 --
 -- Table structure for table `his_payrolls`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_payrolls`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_payrolls` (
   `pay_id` int(20) NOT NULL,
   `pay_number` varchar(200) DEFAULT NULL,
@@ -275,7 +305,10 @@ INSERT INTO `his_payrolls` (`pay_id`, `pay_number`, `pay_doc_name`, `pay_doc_num
 --
 -- Table structure for table `his_pharmaceuticals`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_pharmaceuticals`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_pharmaceuticals` (
   `phar_id` int(20) NOT NULL,
   `phar_name` varchar(200) DEFAULT NULL,
@@ -300,7 +333,10 @@ INSERT INTO `his_pharmaceuticals` (`phar_id`, `phar_name`, `phar_bcode`, `phar_d
 --
 -- Table structure for table `his_pharmaceuticals_categories`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_pharmaceuticals_categories`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_pharmaceuticals_categories` (
   `pharm_cat_id` int(20) NOT NULL,
   `pharm_cat_name` varchar(200) DEFAULT NULL,
@@ -322,7 +358,10 @@ INSERT INTO `his_pharmaceuticals_categories` (`pharm_cat_id`, `pharm_cat_name`, 
 --
 -- Table structure for table `his_prescriptions`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_prescriptions`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_prescriptions` (
   `pres_id` int(200) NOT NULL,
   `pres_pat_name` varchar(200) DEFAULT NULL,
@@ -351,7 +390,10 @@ INSERT INTO `his_prescriptions` (`pres_id`, `pres_pat_name`, `pres_pat_age`, `pr
 --
 -- Table structure for table `his_pwdresets`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_pwdresets`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_pwdresets` (
   `id` int(20) NOT NULL,
   `email` varchar(200) NOT NULL
@@ -362,7 +404,10 @@ CREATE TABLE `his_pwdresets` (
 --
 -- Table structure for table `his_surgery`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_surgery`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_surgery` (
   `s_id` int(200) NOT NULL,
   `s_number` varchar(200) DEFAULT NULL,
@@ -388,7 +433,10 @@ INSERT INTO `his_surgery` (`s_id`, `s_number`, `s_doc`, `s_pat_number`, `s_pat_n
 --
 -- Table structure for table `his_vendor`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_vendor`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_vendor` (
   `v_id` int(20) NOT NULL,
   `v_number` varchar(200) DEFAULT NULL,
@@ -412,7 +460,10 @@ INSERT INTO `his_vendor` (`v_id`, `v_number`, `v_name`, `v_adr`, `v_mobile`, `v_
 --
 -- Table structure for table `his_vitals`
 --
+-- Drop the existing table if it exists
+DROP TABLE IF EXISTS `his_vitals`;
 
+-- Create the new table with the desired structure
 CREATE TABLE `his_vitals` (
   `vit_id` int(20) NOT NULL,
   `vit_number` varchar(200) DEFAULT NULL,
