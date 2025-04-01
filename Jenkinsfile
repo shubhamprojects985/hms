@@ -3,10 +3,10 @@ pipeline {
 
     // Environment variables for customization
     environment {
-        DEPLOY_PATH = "${env.DEPLOY_PATH ?: 'C:\\xampp\\htdocs\\hms'}" // Default for Windows, override via Jenkins
+        DEPLOY_PATH = "${env.DEPLOY_PATH ?: (isUnix() ? '/var/www/html/hms' : 'C:\\xampp\\htdocs\\hms')}"
         SQL_FILE = 'hmisphp.sql'
         DB_NAME = 'hmisphp'
-        MYSQL_PATH = 'C:\\xampp\\mysql\\bin' // Adjust if MySQL is installed elsewhere
+        DB_HOST = "${env.DB_HOST ?: 'localhost'}"
     }
 
     stages {
@@ -30,9 +30,7 @@ pipeline {
         stage('Install Dependencies') {
             steps {
                 script {
-                    // Check if composer.json exists before running composer install
                     if (fileExists('composer.json')) {
-                        // Check OS and run appropriate command
                         if (isUnix()) {
                             sh 'composer install --no-dev --optimize-autoloader'
                         } else {
@@ -56,13 +54,14 @@ pipeline {
                     script {
                         def configTemplate = '''
                             <?php
-                            define('DB_HOST', 'localhost');
+                            define('DB_HOST', '__DB_HOST__');
                             define('DB_USER', '__DB_USER__');
                             define('DB_PASS', '__DB_PASS__');
                             define('DB_NAME', '__DB_NAME__');
                             ?>
                         '''
-                        def finalConfig = configTemplate.replace('__DB_USER__', DB_USER)
+                        def finalConfig = configTemplate.replace('__DB_HOST__', DB_HOST)
+                                                        .replace('__DB_USER__', DB_USER)
                                                         .replace('__DB_PASS__', DB_PASS)
                                                         .replace('__DB_NAME__', DB_NAME)
                         writeFile file: 'config.php', text: finalConfig
@@ -75,7 +74,7 @@ pipeline {
         stage('Deploy') {
             steps {
                 script {
-                    // Copy files to deployment path based on OS
+                    // Copy files to deployment path
                     if (isUnix()) {
                         sh "mkdir -p ${DEPLOY_PATH} && cp -r . ${DEPLOY_PATH}"
                     } else {
@@ -87,27 +86,19 @@ pipeline {
                     usernameVariable: 'DB_USER',
                     passwordVariable: 'DB_PASS'
                 )]) {
-                    // script {
-                    //     // Create database and import SQL file based on OS
-                    //     if (isUnix()) {
-                    //         sh "echo 'CREATE DATABASE IF NOT EXISTS ${DB_NAME};' | mysql -u ${DB_USER} -p${DB_PASS}"
-                    //         sh "mysql -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
-                    //     } else {
-                    //         bat "echo CREATE DATABASE IF NOT EXISTS ${DB_NAME}; | mysql -u ${DB_USER} -p${DB_PASS}"
-                    //         bat "mysql -u ${DB_USER} -p${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
-                    //     }
-                    // }
                     script {
-                        // Ensure MySQL service is running before executing commands
-                        if (!isUnix()) {
-                            bat 'net start mysql || echo MySQL service already running'
+                        // Define MySQL command based on OS
+                        def mysqlCmd
+                        if (isUnix()) {
+                            mysqlCmd = 'mysql'
                         } else {
-                            sh 'service mysql start || echo MySQL service already running'
+                            def defaultMysqlPath = 'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin'
+                            mysqlCmd = "${env.MYSQL_PATH ?: defaultMysqlPath}\\mysql.exe"
                         }
 
-                        // Create database and import SQL file securely
-                        def createDbCommand = "\"${MYSQL_PATH}\\mysql\" -u${DB_USER} --password=${DB_PASS} -e \"CREATE DATABASE IF NOT EXISTS ${DB_NAME};\""
-                        def importDbCommand = "\"${MYSQL_PATH}\\mysql\" -u${DB_USER} --password=${DB_PASS} ${DB_NAME} < ${SQL_FILE}"
+                        // Create database and import SQL file
+                        def createDbCommand = "${mysqlCmd} -u${DB_USER} --password=${DB_PASS} -h${DB_HOST} -e \"CREATE DATABASE IF NOT EXISTS ${DB_NAME};\""
+                        def importDbCommand = "${mysqlCmd} -u${DB_USER} --password=${DB_PASS} -h${DB_HOST} ${DB_NAME} < ${SQL_FILE}"
 
                         if (isUnix()) {
                             sh createDbCommand
