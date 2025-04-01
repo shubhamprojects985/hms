@@ -8,6 +8,9 @@ pipeline {
         SQL_FILE = 'hmisphp.sql'
         DB_NAME = 'hmisphp'
         DB_HOST = "${env.DB_HOST ?: 'localhost'}"
+        PHP_PATH = "${env.PHP_PATH ?: 'C:\\xampp\\php'}"
+        COMPOSER_PATH = "${env.COMPOSER_PATH ?: 'C:\\ProgramData\\ComposerSetup\\bin'}" // Default Composer path
+        // For Linux, you can set it to '/usr/local/bin/composer' or any other path as needed
         MYSQL_PATH = "${env.MYSQL_PATH ?: 'C:\\Program Files\\MySQL\\MySQL Server 8.0\\bin'}" // Default MySQL Workbench path
     }
 
@@ -38,7 +41,7 @@ pipeline {
                         if (isUnix()) {
                             sh 'composer install --no-dev --optimize-autoloader'
                         } else {
-                            bat 'composer install --no-dev --optimize-autoloader'
+                           bat "\"${COMPOSER_PATH}\\composer.bat\" install --no-dev --optimize-autoloader"
                         }
                     } else {
                         echo 'No composer.json found, skipping dependency installation.'
